@@ -14,7 +14,7 @@ import { styles } from './styles';
 import { initialStudents } from './studentsData'; 
 
 const AttendanceApp = () => {
-  const [className, setClassName] = useState('BCA V SEM');
+  const [className, setClassName] = useState('Development & Design');
   const [searchTerm, setSearchTerm] = useState('');
   const [presentStudents, setPresentStudents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -148,13 +148,13 @@ const AttendanceApp = () => {
           style={styles.input}
           value={className}
           onChangeText={setClassName}
-          placeholder="Class Name"
+          placeholder="Group Name"
         />
         <TextInput
           style={styles.input}
           value={searchTerm}
           onChangeText={setSearchTerm}
-          placeholder="Search Student or Group"
+          placeholder="Search Group"
         />
       </View>
 
