@@ -1,0 +1,181 @@
+import React, { useState, useEffect } from 'react';
+
+interface Student {
+  id: number;
+  name: string;
+  present: boolean;
+  group: 'A' | 'B';
+}
+
+const AttendanceApp: React.FC = () => {
+  const [students, setStudents] = useState<Student[]>([
+    { id: 1, name: 'John Doe', present: false, group: 'A' },
+    { id: 2, name: 'Jane Doe', present: false, group: 'B' },
+    { id: 3, name: 'Alice Smith', present: false, group: 'A' },
+    { id: 4, name: 'Bob Johnson', present: false, group: 'B' },
+    { id: 5, name: 'Mike Brown', present: false, group: 'A' },
+    { id: 6, name: 'Emily Davis', present: false, group: 'B' },
+    { id: 7, name: 'Sarah Taylor', present: false, group: 'A' },
+    { id: 8, name: 'Michael White', present: false, group: 'B' },
+    { id: 9, name: 'Jessica Martin', present: false, group: 'A' },
+    { id: 10, name: 'William Harris', present: false, group: 'B' },
+  ]);
+
+  const [className, setClassName] = useState('BCA V SEM');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [presentStudents, setPresentStudents] = useState<string[]>([]);
+  const [disabled, setDisabled] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    document.title = `Attendance App - ${currentDate.toLocaleDateString()} ${currentDate.toLocaleTimeString()}`;
+  }, [currentDate]);
+
+  const handlePresent = (id: number) => {
+    if (!disabled) {
+      setDisabled(true);
+      setTimeout(() => setDisabled(false), 300);
+      const student = students.find((s) => s.id === id);
+      if (student) {
+        setStudents((prevStudents) =>
+          prevStudents.map((s) => (s.id === id ? { ...s, present: !s.present } : s))
+        );
+        setPresentStudents((prevPresentStudents) => 
+          student.present 
+            ? prevPresentStudents.filter(name => name !== `${student.name} (Group ${student.group})`)
+            : [...prevPresentStudents, `${student.name} (Group ${student.group})`]
+        );
+      }
+    }
+  };
+
+  const handleCopyPresentStudents = () => {
+  const date = currentDate.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  const presentStudentsWithoutGroup = presentStudents.map(student => 
+    student.replace(/ \(Group [AB]\)$/, '')
+  );
+  const textToCopy = `*${className}*\n${date}\n\n${presentStudentsWithoutGroup.join('\n')}`;
+  navigator.clipboard.writeText(textToCopy);
+};
+
+  const handleResetAttendance = () => {
+    setStudents(students.map(s => ({ ...s, present: false })));
+    setPresentStudents([]);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+          <h1 className="text-4xl font-bold mb-6 text-center text-gray-800">Attendance App</h1>
+          
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-semibold text-gray-700">{className}</h2>
+            <p className="text-gray-600">
+              {currentDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })} {currentDate.toLocaleTimeString()}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between mb-6">
+            <input
+              type="text"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              placeholder="Class Name"
+              className="w-full sm:w-1/2 p-2 mb-2 sm:mb-0 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search Student"
+              className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border border-gray-300 p-2 text-left">Name</th>
+                  <th className="border border-gray-300 p-2 text-center">Group</th>
+                  <th className="border border-gray-300 p-2 text-center">Attendance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students
+                  .filter((s) => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((s) => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 p-2">{s.name}</td>
+                      <td className="border border-gray-300 p-2 text-center">Group {s.group}</td>
+                      <td className="border border-gray-300 p-2">
+                        <button
+                          onClick={() => handlePresent(s.id)}
+                          className={`w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-200 ${
+                            s.present ? 'bg-green-400 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                          }`}
+                        >
+                          {s.present ? 'Present' : 'Mark Present'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6">
+            <span className="text-lg font-semibold mb-2 sm:mb-0">
+              Present: {presentStudents.length}/{students.length}
+            </span>
+            <div className="space-x-2">
+              <button
+                onClick={handleCopyPresentStudents}
+                className="p-2 bg-purple-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 hover:bg-cyan-600 transition-colors duration-200"
+              >
+                Copy Attendance
+              </button>
+              <button
+                onClick={handleResetAttendance}
+                className="p-2 bg-red-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 hover:bg-red-600 transition-colors duration-200"
+              >
+                Reset Attendance
+              </button>
+            </div>
+          </div>
+
+          {presentStudents.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-xl font-semibold mb-2">Present Students:</h3>
+              <ul className="list-disc list-inside">
+                {presentStudents.map((s, i) => (
+                  <li key={i} className="text-gray-700">{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AttendanceApp;
